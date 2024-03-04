@@ -15,6 +15,10 @@ tauri = { version = "1", features = ["shell-open"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
+tokio = { version = "1.36", features  = ["macros"] }
+serenity = { version = "0.12.1", default-features = false, features = ["client", "gateway", "model", "rustls_backend"] }
+lazy_static = "1.4"
+
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!
 custom-protocol = ["tauri/custom-protocol"]
