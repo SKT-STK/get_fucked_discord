@@ -3,4 +3,3 @@
 /src-tauri/target
 *.lock
 *-lock*
-*.pem

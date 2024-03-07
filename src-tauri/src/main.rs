@@ -11,7 +11,8 @@ fn main() {
       files::process_file_contents,
       files::get_file_size,
       files::get_starter_data,
-      files::write_config_file
+      files::write_config_file,
+      dc_bot::download_attachment
     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");

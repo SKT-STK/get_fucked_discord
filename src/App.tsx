@@ -4,11 +4,19 @@ import { useEffect, useRef, useState } from "react"
 import ProcessBarItem from "@/components/ProcessBarItem"
 import ListItem from "@/components/ListItem"
 import { appConfigDir, join } from "@tauri-apps/api/path"
+import { ToastOptions, toast } from "react-toastify"
 
-export type Data = {
+type Data = {
   fileName: string,
-  ids: number[]
+  ids: string[]
 }[]
+
+const toastOption = {
+  position: 'top-center',
+  autoClose: 4000,
+  draggable: false,
+  theme: 'dark'
+} as ToastOptions<unknown>
 
 const App = () => {
   const [dataToGo, setDataToGo] = useState<{ fileName: string, sizeChunks: number } | undefined>()
@@ -31,16 +39,17 @@ const App = () => {
       setDataToGo({ fileName, sizeChunks: chunks })
     }
 
-    const handleDataSave = async (fileName: string, dcMsgsIds: number[]) => {
+    const handleDataSave = async (fileName: string, dcMsgsIds: string[]) => {
       setData(prev => [{fileName, ids: dcMsgsIds}, ...prev])
       setDataToGo(undefined)
       canTakeFiles = true
+      toast('Upload completed!', toastOption)
     }
 
     const processFileContents = async (filePath: string) => {
       const ret = await invoke('process_file_contents', { filePath })
       const fileName = getFileName(filePath)
-      handleDataSave(fileName, ret as number[])
+      handleDataSave(fileName, ret as string[])
     }
 
     const setupListener = async () => {
@@ -80,7 +89,7 @@ const App = () => {
     <main className='bg-[#21242C] flex flex-col items-center min-h-screen w-full text-neutral-100 pt-4'>
       { dataToGo && <ProcessBarItem fileName={dataToGo.fileName} getSizeChunks={() => dataToGo.sizeChunks} /> }
       { data.map((v, i) => (
-        <ListItem key={i} name={v.fileName} />
+        <ListItem key={i} name={v.fileName} ids={v.ids} />
       )) }
     </main>
   )

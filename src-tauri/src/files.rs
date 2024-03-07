@@ -37,7 +37,7 @@ pub fn get_starter_data(base_path: String, path: String) -> String {
 }
 
 #[tauri::command]
-pub async fn process_file_contents(app: AppHandle, file_path: String) -> Vec<u64>  {
+pub async fn process_file_contents(app: AppHandle, file_path: String) -> Vec<String>  {
   const CHUCK_SIZE: usize = 25 * 1024 * 1024;
 
   let mut ret = Vec::new();
@@ -54,7 +54,7 @@ pub async fn process_file_contents(app: AppHandle, file_path: String) -> Vec<u64
     if bytes_read == 0 { break; }
 
     ret.push(
-      handle_data(&i, &buffer, bytes_read, &app).await
+      handle_data(&i, &buffer, bytes_read, &app).await.to_string()
     );
   }
 
