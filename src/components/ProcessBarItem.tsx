@@ -3,11 +3,12 @@ import { useEffect, useState } from "react"
 import { type TargetAndTransition, motion } from 'framer-motion'
 
 interface ProcessBarItemProps {
+  eventName: string
   fileName: string
   getSizeChunks: () => number
 }
 
-const ProcessBarItem = ({ fileName, getSizeChunks }: ProcessBarItemProps) => {
+const ProcessBarItem = ({ eventName, fileName, getSizeChunks }: ProcessBarItemProps) => {
   const [perc, setPerc] = useState<number>(0)
 
   const animationPops: TargetAndTransition = {
@@ -24,7 +25,7 @@ const ProcessBarItem = ({ fileName, getSizeChunks }: ProcessBarItemProps) => {
     let nMessages = 0;
 
     (async () => {
-      unlisten = await listen('custom-attachment_sent', () => {
+      unlisten = await listen(eventName, () => {
         if (!isMounted) return
 
         ++nMessages

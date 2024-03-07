@@ -46,11 +46,12 @@ pub async fn send_attachment(file_path: &str, app: &AppHandle) -> u64 {
 }
 
 #[tauri::command]
-pub async fn download_attachment(file_path: String, ids: Vec<String>) {
+pub async fn download_attachment(app: AppHandle, file_path: String, ids: Vec<String>) {
   let global_context = GLOBAL_CONTEXT.lock().await;
   for id in ids.iter() {
     let message = MAIN_CHANNEL.message(&*global_context.as_ref().unwrap().http(), id.parse::<u64>().unwrap()).await.unwrap();
     process_attachment(message.attachments.get(0).unwrap(), &file_path).await;
+    app.emit_all("custom-attachment_downloaded", Payload {}).unwrap();
   }
 }
 

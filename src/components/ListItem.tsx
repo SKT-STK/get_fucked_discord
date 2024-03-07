@@ -5,6 +5,7 @@ import { ToastOptions, toast } from "react-toastify"
 interface ListDisplayProps {
   name: string
   ids: string[]
+  setDownloadOnGoing: ({is, fileName}: {is: boolean, fileName: string}) => void
 }
 
 const toastOption = {
@@ -14,11 +15,13 @@ const toastOption = {
   theme: 'dark'
 } as ToastOptions<unknown>
 
-const ListDisplay = ({ name, ids }: ListDisplayProps) => {
+const ListDisplay = ({ name, ids, setDownloadOnGoing }: ListDisplayProps) => {
   const handleOnClick = async () => {
     toast.info('Starting download... This might take a while...', toastOption)
+    setDownloadOnGoing({is: true, fileName: name})
     await invoke('download_attachment', { filePath: await join(await downloadDir(), name), ids })
     toast('Download completed!', toastOption)
+    setDownloadOnGoing({is: false, fileName: ''})
   }
 
   return (

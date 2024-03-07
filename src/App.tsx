@@ -20,6 +20,7 @@ const toastOption = {
 
 const App = () => {
   const [dataToGo, setDataToGo] = useState<{ fileName: string, sizeChunks: number } | undefined>()
+  const [downloadOnGoing, setDownloadOnGoing] = useState<{ is: boolean, fileName: string }>({ is: false, fileName: '' })
   const [data, setData] = useState<Data>([])
   const gotStarterData = useRef<boolean | null>(false)
 
@@ -56,6 +57,7 @@ const App = () => {
       unlisten = await listen('tauri://file-drop', async e => {
         if (!isMounted || !canTakeFiles) return
 
+        toast.info('Starting upload... This might take a while...', toastOption)
         canTakeFiles = false
         const filePath = (e.payload as string[])[0]
         processFileContents(filePath)
@@ -87,9 +89,18 @@ const App = () => {
 
   return (
     <main className='bg-[#21242C] flex flex-col items-center min-h-screen w-full text-neutral-100 pt-4'>
-      { dataToGo && <ProcessBarItem fileName={dataToGo.fileName} getSizeChunks={() => dataToGo.sizeChunks} /> }
+      { dataToGo && <ProcessBarItem eventName='custom-attachment_sent' fileName={dataToGo.fileName} getSizeChunks={() => dataToGo.sizeChunks} /> }
+      { downloadOnGoing.is && <ProcessBarItem eventName='custom-attachment_downloaded' fileName={downloadOnGoing.fileName} getSizeChunks={() => {
+        let length = 0
+        data.forEach(item => {
+          if (item.fileName === downloadOnGoing.fileName) {
+            length = item.ids.length
+          }
+        })
+        return length
+      }} /> }
       { data.map((v, i) => (
-        <ListItem key={i} name={v.fileName} ids={v.ids} />
+        <ListItem key={i} name={v.fileName} ids={v.ids} setDownloadOnGoing={setDownloadOnGoing} />
       )) }
     </main>
   )
