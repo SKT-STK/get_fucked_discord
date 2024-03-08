@@ -1,7 +1,7 @@
 import { useDraggable } from "@dnd-kit/core"
 import { downloadDir, join } from "@tauri-apps/api/path"
 import { invoke } from "@tauri-apps/api/tauri"
-import { type CSSProperties, useEffect, useRef, useState } from "react"
+import { useEffect } from "react"
 import { ToastOptions, toast } from "react-toastify"
 
 interface ListItemProps {
@@ -9,6 +9,7 @@ interface ListItemProps {
   id: number
   ids: string[]
   setDownloadOnGoing: ({is, fileName}: {is: boolean, fileName: string}) => void
+  isDraggingCallback: (isDragging: boolean) => void
 }
 
 const toastOption = {
@@ -18,11 +19,10 @@ const toastOption = {
   theme: 'dark'
 } as ToastOptions<unknown>
 
-const ListItem = ({ name, id, ids, setDownloadOnGoing }: ListItemProps) => {
+const ListItem = ({ name, id, ids, setDownloadOnGoing, isDraggingCallback }: ListItemProps) => {
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: id.toString()
   })
-  const [onTimeStyles, setOnTimeStyles] = useState<CSSProperties>({})
 
   const handleOnClick = async () => {
     toast.info('Starting download... This might take a while...', toastOption)
@@ -34,14 +34,10 @@ const ListItem = ({ name, id, ids, setDownloadOnGoing }: ListItemProps) => {
 
   useEffect(() => {
     if (transform) {
-      setOnTimeStyles({
-        scale: .95
-      })
+      isDraggingCallback(true)
     }
     else {
-      setOnTimeStyles({
-        scale: 1
-      })
+      isDraggingCallback(false)
     }
   }, [!!transform])
 
@@ -52,7 +48,8 @@ const ListItem = ({ name, id, ids, setDownloadOnGoing }: ListItemProps) => {
         border-[#15F5BA] text-2xl hover:bg-[#FFF1] [&:first-child]:rounded-t-xl [&:last-child]:rounded-b-xl px-5'
       style={{
         transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
-        ...onTimeStyles
+        scale: transform ? .95 : 1,
+        transition: 'scale 100ms ease-in-out'
       }}
       onClick={handleOnClick}
     >

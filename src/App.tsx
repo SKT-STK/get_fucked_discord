@@ -25,13 +25,17 @@ const App = () => {
   const [downloadOnGoing, setDownloadOnGoing] = useState<{ is: boolean, fileName: string }>({ is: false, fileName: '' })
   const [data, setData] = useState<Data>([])
   const gotStarterData = useRef<boolean | null>(false)
+  const [isDragging, setIsDragging] = useState<boolean>(false)
 
   const handleDragOver = async (e: DragEndEvent) => {
     const { active, over } = e
-    if (active.id && over) {
-      // await invoke()
-      setData(prev => prev.filter((_, idx) => idx !== parseInt(active.id.toString())))
-    }
+    if (!active.id || !over) return
+    const objIdsToRemove = data.filter((_, idx) => idx === parseInt(active.id.toString()))[0].ids
+    setData(prev => prev.filter((_, idx) => idx !== parseInt(active.id.toString())))
+    setIsDragging(false)
+    toast.info('Deleting the file... This might take a while...', toastOption)
+    await invoke('delete_attachments', { ids: objIdsToRemove })
+    toast('Deleted the file successfully!', toastOption)
   }
 
   useEffect(() => {
@@ -77,7 +81,12 @@ const App = () => {
 
     const getStarterData = async () => {
       const starterData = await invoke('get_starter_data', { basePath: await appConfigDir(), path: await join(await appConfigDir(), 'data.json') })
-      starterData && setData(JSON.parse(starterData as string) as Data)
+      try {
+        setData(JSON.parse(starterData as string) as Data)
+      }
+      catch (_) {
+        setData([])
+      }
       gotStarterData.current = true
     }
 
@@ -111,9 +120,9 @@ const App = () => {
       }} /> }
       <DndContext onDragEnd={handleDragOver}>
         { data.map((v, i) => (
-          <ListItem key={i} id={i} name={v.fileName} ids={v.ids} setDownloadOnGoing={setDownloadOnGoing} />
+          <ListItem key={i} id={i} name={v.fileName} ids={v.ids} setDownloadOnGoing={setDownloadOnGoing} isDraggingCallback={setIsDragging} />
         )) }
-        <TrashBin />
+        { isDragging && <TrashBin /> }
       </DndContext>
     </main>
   )

@@ -1,7 +1,7 @@
 {
   "build": {
     "beforeDevCommand": "npm run dev",
-    "beforeBuildCommand": "npx eslint ./src/**/.{tsx,ts} && npm run build",
+    "beforeBuildCommand": "npx eslint ./src/**/*.{tsx,ts} && npm run build",
     "devPath": "http://localhost:1420",
     "distDir": "../dist"
   },

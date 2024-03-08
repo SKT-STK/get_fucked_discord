@@ -2,7 +2,7 @@ mod structs;
 use structs::*;
 use tauri::{AppHandle, Manager};
 
-use std::{env, fs::OpenOptions, io::Write};
+use std::{/* env,  */fs::OpenOptions, io::Write};
 use serenity::{
   all::{Attachment, ChannelId, CreateAttachment, CreateMessage}, prelude::*
 };
@@ -11,7 +11,8 @@ const MAIN_CHANNEL: ChannelId = ChannelId::new(1214281535168188489);
 
 #[tauri::command]
 pub async fn init_bot() {
-  let token = env::var("DISCORD_TOKEN").expect("No Discord Bot Token Provided");
+  // let token = env::var("DISCORD_TOKEN").expect("No Discord Bot Token Provided");
+  let token = "MTIxNDI4MTcwNTI3NjU3OTk1MA.G9OeNV.ej-yPMN_j_iyGvdXJLlLbYnPb1wTTFCE6ZTPfs";
   let mut client = Client::builder(&token, GatewayIntents::DIRECT_MESSAGES)
     .event_handler(Handler)
     .await
@@ -65,4 +66,12 @@ async fn process_attachment(attachment: &Attachment, file_path: &str) {
   let content = attachment.download().await.unwrap();
 
   file.write_all(&content).unwrap();
+}
+
+#[tauri::command]
+pub async fn delete_attachments(ids: Vec<String>) {
+  let global_context = GLOBAL_CONTEXT.lock().await;
+  for id in ids {
+    MAIN_CHANNEL.delete_message(&*global_context.as_ref().unwrap().http(), id.parse::<u64>().unwrap()).await.unwrap();
+  }
 }

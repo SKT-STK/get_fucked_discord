@@ -14,6 +14,7 @@ pub fn get_file_size(path: String) -> u64 {
 pub fn write_config_file(path: String, contents: String) {
   let mut file = OpenOptions::new()
     .write(true)
+    .truncate(true)
     .open(path)
     .unwrap();
 
