@@ -5,6 +5,8 @@ import ProcessBarItem from "@/components/ProcessBarItem"
 import ListItem from "@/components/ListItem"
 import { appConfigDir, join } from "@tauri-apps/api/path"
 import { ToastOptions, toast } from "react-toastify"
+import TrashBin from "@/components/TrashBin"
+import { DndContext, type DragEndEvent } from "@dnd-kit/core"
 
 type Data = {
   fileName: string,
@@ -23,6 +25,14 @@ const App = () => {
   const [downloadOnGoing, setDownloadOnGoing] = useState<{ is: boolean, fileName: string }>({ is: false, fileName: '' })
   const [data, setData] = useState<Data>([])
   const gotStarterData = useRef<boolean | null>(false)
+
+  const handleDragOver = async (e: DragEndEvent) => {
+    const { active, over } = e
+    if (active.id && over) {
+      // await invoke()
+      setData(prev => prev.filter((_, idx) => idx !== parseInt(active.id.toString())))
+    }
+  }
 
   useEffect(() => {
     let unlisten: UnlistenFn
@@ -99,9 +109,12 @@ const App = () => {
         })
         return length
       }} /> }
-      { data.map((v, i) => (
-        <ListItem key={i} name={v.fileName} ids={v.ids} setDownloadOnGoing={setDownloadOnGoing} />
-      )) }
+      <DndContext onDragEnd={handleDragOver}>
+        { data.map((v, i) => (
+          <ListItem key={i} id={i} name={v.fileName} ids={v.ids} setDownloadOnGoing={setDownloadOnGoing} />
+        )) }
+        <TrashBin />
+      </DndContext>
     </main>
   )
 }
