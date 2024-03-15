@@ -15,14 +15,14 @@ const TrashBin = () => {
     const halfDurationMs = ((animation.current?.getDuration() || 0) / 2) * 1000
     const halfFrames = (animation.current?.getDuration(true) || 0) / 2
     if (isOver) {
-      controls.start({ scale: 1.3, transition: { duration: .2, ease: 'easeInOut' } });
+      controls.start({ scale: 1.3, transition: { duration: .2, ease: 'easeInOut' } })
       animation.current?.goToAndPlay(0, true)
       setTimeout(() => {
         animation.current?.goToAndStop(halfFrames, true)
       }, halfDurationMs)
     }
     else {
-      controls.start({ scale: 1, transition: { duration: .2, ease: 'easeInOut' } });
+      controls.start({ scale: 1, transition: { duration: .2, ease: 'easeInOut' } })
       animation.current?.goToAndPlay(halfFrames + 15, true)
       setTimeout(() => {
         animation.current?.goToAndStop(0, true)
@@ -30,11 +30,16 @@ const TrashBin = () => {
     }
   }, [isOver])
 
+  useEffect(() => {
+    animation.current?.goToAndStop(0, true)
+    controls.start({ opacity: .5, transition: { duration: .5, ease: 'easeOut' } })
+  }, [])
+
   return (
     <motion.section
       ref={setNodeRef}
       animate={controls}
-      className='fixed bottom-7 left-[46vw] aspect-square rounded-full w-[8vw] bg-slate-500 opacity-50'
+      className='fixed bottom-7 left-[46vw] aspect-square rounded-full w-[8vw] bg-slate-500 opacity-[0]'
     >
       <Lottie
         lottieRef={animation}

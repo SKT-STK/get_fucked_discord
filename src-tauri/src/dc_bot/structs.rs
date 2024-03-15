@@ -8,6 +8,7 @@ use serenity::{
 
 lazy_static! {
   pub static ref GLOBAL_CONTEXT: Arc<Mutex<Option<Context>>> = Arc::new(Mutex::new(None));
+  pub static ref IS_BOT_READY: Arc<Mutex<bool>> = Arc::new(Mutex::new(false));
 }
 
 pub struct Handler;
@@ -17,6 +18,9 @@ impl EventHandler for Handler {
     println!("{} is ready", ready.user.name);
     let mut global_context = GLOBAL_CONTEXT.lock().await;
     *global_context = Some(ctx);
+    
+    let mut is_bot_ready = IS_BOT_READY.lock().await;
+    *is_bot_ready = true;
   }
 }
 

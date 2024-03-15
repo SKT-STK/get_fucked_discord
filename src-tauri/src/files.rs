@@ -1,6 +1,6 @@
 use tauri::AppHandle;
 
-use crate::dc_bot;
+use crate::dc_bot::{self, get_config_message_content, send_attachment};
 
 use std::{env, fs::{self, File, OpenOptions}, io::{Read, Write}, os::windows::fs::MetadataExt};
 
@@ -11,30 +11,30 @@ pub fn get_file_size(path: String) -> u64 {
 }
 
 #[tauri::command]
-pub fn write_config_file(path: String, contents: String) {
+pub async fn write_config_file(app: AppHandle, contents: String) {
+  let path = env::temp_dir()
+    .to_str()
+    .unwrap()
+    .to_owned()
+    + "/get_fucked_discord_data.json";
+
   let mut file = OpenOptions::new()
     .write(true)
-    .truncate(true)
-    .open(path)
+    .create(true)
+    .open(&path)
     .unwrap();
 
   file.write_all(contents.as_bytes()).unwrap();
+
+  let _ = send_attachment(&path, &app, true).await;
+
+  let _ = fs::remove_file(path);
 }
 
 #[tauri::command]
-pub fn get_starter_data(base_path: String, path: String) -> String {
-  let _ = fs::create_dir_all(base_path);
-
-  let mut file = OpenOptions::new()
-    .read(true)
-    .write(true)
-    .create(true)
-    .open(path)
-    .unwrap();
-
-  let mut ret = String::new();
-  file.read_to_string(&mut ret).unwrap();
-  ret
+pub async fn get_starter_data() -> String {
+  let vec = get_config_message_content().await;
+  String::from_utf8(vec).unwrap()
 }
 
 #[tauri::command]
@@ -75,7 +75,7 @@ async fn handle_data(i: &u32, buffer: &Vec<u8>, bytes_read: usize, app: &AppHand
 
   file.write_all(&buffer[..bytes_read]).unwrap();
 
-  let ret = dc_bot::send_attachment(&path, app).await;
+  let ret = dc_bot::send_attachment(&path, app, false).await;
   let _ = fs::remove_file(path);
 
   ret

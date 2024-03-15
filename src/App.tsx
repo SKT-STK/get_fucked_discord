@@ -3,7 +3,6 @@ import { invoke } from "@tauri-apps/api/tauri"
 import { useEffect, useRef, useState } from "react"
 import ProcessBarItem from "@/components/ProcessBarItem"
 import ListItem from "@/components/ListItem"
-import { appConfigDir, join } from "@tauri-apps/api/path"
 import { ToastOptions, toast } from "react-toastify"
 import TrashBin from "@/components/TrashBin"
 import { DndContext, type DragEndEvent } from "@dnd-kit/core"
@@ -39,7 +38,8 @@ const App = () => {
   }
 
   useEffect(() => {
-    let unlisten: UnlistenFn
+    // let unlisten: UnlistenFn
+    const unlisten: [UnlistenFn, UnlistenFn] = [() => {}, () => {}]
     let isMounted = true
     let canTakeFiles = true
 
@@ -68,7 +68,7 @@ const App = () => {
     }
 
     const setupListener = async () => {
-      unlisten = await listen('tauri://file-drop', async e => {
+      unlisten[0] = await listen('tauri://file-drop', async e => {
         if (!isMounted || !canTakeFiles) return
 
         toast.info('Starting upload... This might take a while...', toastOption)
@@ -80,14 +80,18 @@ const App = () => {
     }
 
     const getStarterData = async () => {
-      const starterData = await invoke('get_starter_data', { basePath: await appConfigDir(), path: await join(await appConfigDir(), 'data.json') })
-      try {
-        setData(JSON.parse(starterData as string) as Data)
-      }
-      catch (_) {
-        setData([])
-      }
-      gotStarterData.current = true
+      unlisten[1] = await listen('custom_bot-ready', async () => {
+        try {
+          const starterData = await invoke('get_starter_data')
+          setData(JSON.parse(starterData as string) as Data)
+        }
+        catch (_) {
+          setData([])
+        }
+        finally {
+          gotStarterData.current = true
+        }
+      })
     }
 
     getStarterData()
@@ -95,14 +99,14 @@ const App = () => {
 
     return () => {
       isMounted = false
-      if (unlisten) unlisten()
+      unlisten.forEach(listener => listener())
     }
   }, [])
 
   useEffect(() => {
     (async () => {
       if (!gotStarterData.current) return
-      invoke('write_config_file', { path: await join(await appConfigDir(), 'data.json'), contents: JSON.stringify(data) })
+      invoke('write_config_file', { contents: JSON.stringify(data) })
     })()
   }, [data])
 
