@@ -95,12 +95,13 @@ async fn process_attachment(attachment: &Attachment, file_path: &str) {
 }
 
 #[tauri::command]
-pub async fn delete_attachments(ids: Vec<String>) {
+pub async fn delete_attachments(app: AppHandle, ids: Vec<String>) {
   let global_context = GLOBAL_CONTEXT.lock().await;
   let http = &*global_context.as_ref().unwrap().http();
   
   for id in ids {
     let _ = MAIN_CHANNEL.delete_message(http, id.parse::<u64>().unwrap()).await;
+    app.emit_all("custom-attachment_deleted", Payload {}).unwrap();
   }
 }
 
