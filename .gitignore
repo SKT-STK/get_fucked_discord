@@ -1,6 +1,5 @@
-/node_modules/*
-/package-lock.json/*
-/src-tauri/target/*
-/dist/*
+/node_modules
+/src-tauri/target
+/dist
 *.lock
 *-lock*
