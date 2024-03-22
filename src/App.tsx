@@ -6,6 +6,7 @@ import ListItem from "@/components/ListItem"
 import { ToastOptions, toast } from "react-toastify"
 import TrashBin from "@/components/TrashBin"
 import { DndContext, type DragEndEvent } from "@dnd-kit/core"
+import Lockdown from "@/components/Lockdown"
 
 type Data = {
   fileName: string,
@@ -26,8 +27,10 @@ const App = () => {
   const [data, setData] = useState<Data>([])
   const gotStarterData = useRef<boolean | null>(false)
   const [isDragging, setIsDragging] = useState<boolean>(false)
+  const [canTakeFile, setCanTakeFile] = useState<boolean>(true)
 
   const handleDragOver = async (e: DragEndEvent) => {
+    setCanTakeFile(false)
     const { active, over } = e
     if (!active.id || !over) return
     const objToRemove = data.filter((_, idx) => idx === parseInt(active.id.toString()))[0]
@@ -38,12 +41,12 @@ const App = () => {
     await invoke('delete_attachments', { ids: objToRemove.ids })
     toast('Deleted the file successfully!', toastOption)
     setDeleteOnGoing({ is: false, fileName: '', sizeChunks: 0 })
+    setCanTakeFile(true)
   }
 
   useEffect(() => {
     const unlisten: [UnlistenFn, UnlistenFn] = [() => {}, () => {}]
     let isMounted = true
-    let canTakeFiles = true
 
     const getFileName = (path: string) => {
       const pathElements = path.split('\\')
@@ -59,8 +62,8 @@ const App = () => {
     const handleDataSave = async (fileName: string, dcMsgsIds: string[]) => {
       setData(prev => [{fileName, ids: dcMsgsIds}, ...prev])
       setDataToGo(undefined)
-      canTakeFiles = true
       toast('Upload completed!', toastOption)
+      setCanTakeFile(true)
     }
 
     const processFileContents = async (filePath: string) => {
@@ -71,10 +74,10 @@ const App = () => {
 
     const setupListener = async () => {
       unlisten[0] = await listen('tauri://file-drop', async e => {
-        if (!isMounted || !canTakeFiles) return
+        if (!isMounted) return
 
+        setCanTakeFile(false)
         toast.info('Starting upload... This might take a while...', toastOption)
-        canTakeFiles = false
         const filePath = (e.payload as string[])[0]
         processFileContents(filePath)
         handleUserFeedback(await invoke('get_file_size', { path: filePath }), getFileName(filePath))
@@ -112,7 +115,8 @@ const App = () => {
     })()
   }, [data])
 
-  return (
+  return (<>
+    <Lockdown show={!canTakeFile} />
     <main className='bg-[#21242C] flex flex-col items-center min-h-screen w-full text-neutral-100 pt-4'>
       { dataToGo && <ProcessBarItem eventName='custom-attachment_sent' fileName={dataToGo.fileName} getSizeChunks={() => dataToGo.sizeChunks} /> }
       { downloadOnGoing.is && <ProcessBarItem eventName='custom-attachment_downloaded' fileName={downloadOnGoing.fileName} getSizeChunks={() => {
@@ -127,11 +131,11 @@ const App = () => {
       { deleteOnGoing.is && <ProcessBarItem eventName='custom-attachment_deleted' fileName={deleteOnGoing.fileName} getSizeChunks={() => deleteOnGoing.sizeChunks} /> }
       <DndContext onDragEnd={handleDragOver}>
         { data.map((v, i) => (
-          <ListItem key={i} id={i} name={v.fileName} ids={v.ids} setDownloadOnGoing={setDownloadOnGoing} isDraggingCallback={setIsDragging} />
+          <ListItem key={i} id={i} name={v.fileName} ids={v.ids} setDownloadOnGoing={setDownloadOnGoing} isDraggingCallback={setIsDragging} canTakeFileCallback={setCanTakeFile} />
         )) }
         { isDragging && <TrashBin /> }
       </DndContext>
     </main>
-  )
+  </>)
 }
 export default App

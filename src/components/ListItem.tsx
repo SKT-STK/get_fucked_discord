@@ -10,6 +10,7 @@ interface ListItemProps {
   ids: string[]
   setDownloadOnGoing: ({is, fileName}: {is: boolean, fileName: string}) => void
   isDraggingCallback: (isDragging: boolean) => void
+  canTakeFileCallback: (canTakeFile: boolean) => void
 }
 
 const toastOption = {
@@ -19,17 +20,19 @@ const toastOption = {
   theme: 'dark'
 } as ToastOptions<unknown>
 
-const ListItem = ({ name, id, ids, setDownloadOnGoing, isDraggingCallback }: ListItemProps) => {
+const ListItem = ({ name, id, ids, setDownloadOnGoing, isDraggingCallback, canTakeFileCallback }: ListItemProps) => {
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: id.toString()
   })
 
   const handleOnClick = async () => {
+    canTakeFileCallback(false)
     toast.info('Starting download... This might take a while...', toastOption)
     setDownloadOnGoing({is: true, fileName: name})
     await invoke('download_attachment', { filePath: await join(await downloadDir(), name), ids })
     toast('Download completed!', toastOption)
     setDownloadOnGoing({is: false, fileName: ''})
+    canTakeFileCallback(true)
   }
 
   useEffect(() => {
