@@ -2,7 +2,11 @@
 export default {
   content: ["./src/**/*.{tsx,ts,jsx,js}", "*.html"],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        lexendDeca: ['Lexend Deca', 'sans-serif']
+      }
+    },
   },
   plugins: [],
 }

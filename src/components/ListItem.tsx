@@ -1,16 +1,17 @@
-import { useDraggable } from "@dnd-kit/core"
 import { downloadDir, join } from "@tauri-apps/api/path"
 import { invoke } from "@tauri-apps/api/tauri"
-import { useEffect } from "react"
+import Lottie, { type LottieRefCurrentProps } from "lottie-react"
+import { useRef } from "react"
 import { ToastOptions, toast } from "react-toastify"
+import animationData from '@/assets/animations/trashBinAnim.json'
 
 interface ListItemProps {
   name: string
   id: number
   ids: string[]
   setDownloadOnGoing: ({is, fileName}: {is: boolean, fileName: string}) => void
-  isDraggingCallback: (isDragging: boolean) => void
   canTakeFileCallback: (canTakeFile: boolean) => void
+  removeFileCallback: (id: number) => Promise<void>
 }
 
 const toastOption = {
@@ -20,12 +21,10 @@ const toastOption = {
   theme: 'dark'
 } as ToastOptions<unknown>
 
-const ListItem = ({ name, id, ids, setDownloadOnGoing, isDraggingCallback, canTakeFileCallback }: ListItemProps) => {
-  const { attributes, listeners, setNodeRef, transform } = useDraggable({
-    id: id.toString()
-  })
+const ListItem = ({ name, id, ids, setDownloadOnGoing, canTakeFileCallback, removeFileCallback }: ListItemProps) => {
+  const animRef = useRef<LottieRefCurrentProps>(null)
 
-  const handleOnClick = async () => {
+  async function handleOnDownload() {
     canTakeFileCallback(false)
     toast.info('Starting download... This might take a while...', toastOption)
     setDownloadOnGoing({is: true, fileName: name})
@@ -35,39 +34,31 @@ const ListItem = ({ name, id, ids, setDownloadOnGoing, isDraggingCallback, canTa
     canTakeFileCallback(true)
   }
 
-  useEffect(() => {
-    if (transform) {
-      isDraggingCallback(true)
-    }
-    else {
-      isDraggingCallback(false)
-    }
-  }, [!!transform])
+  async function handleOnRemove(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {
+    e.stopPropagation()
+    removeFileCallback(id)
+  }
 
   return (
     <section
-      ref={setNodeRef}
       className='w-[90%] h-[10vh] flex justify-between items-center text-center [&:not(:last-child)]:border-b-[1px] cursor-pointer
         border-[#15F5BA] text-2xl hover:bg-[#FFF1] [&:first-child]:rounded-t-xl [&:last-child]:rounded-b-xl px-5'
-      style={{
-        transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
-        scale: transform ? .95 : 1,
-        transition: 'scale 100ms ease-in-out'
-      }}
-      onClick={handleOnClick}
+      onClick={handleOnDownload}
     >
       { name }
       <div
-        {...listeners}
-        {...attributes}
-        className='w-[3%] h-[50%] flex justify-evenly items-center flex-row flex-wrap'
-        style={{
-          cursor: transform ? 'grabbing' : 'grab'
-        }}
+        className='relative aspect-square w-[2.4em] cursor-pointer hover:scale-125 duration-100 hue-rotate-180 invert grayscale hover:grayscale-0'
+        onMouseOver={() => animRef.current?.goToAndPlay(20, true) }
+        onMouseLeave={() => animRef.current?.goToAndStop(0, true) }
+        onClick={handleOnRemove}
       >
-        { Array.from({ length: 6 }, (_, idx) => (
-          <div key={idx} className='rounded-full bg-gray-400 w-[35%] h-[22%] scale-50' />
-        )) }
+        <Lottie
+          lottieRef={animRef}
+          className='absolute pointer-events-none'
+          animationData={animationData}
+          loop={true}
+          autoplay={false}
+        />
       </div>
     </section>
   )

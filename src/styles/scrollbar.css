@@ -1,0 +1,22 @@
+:root {
+  --scrollbar-top-round: 0; /* 0 or 1vw */
+  --scrollbar-bottom-round: 0; /* 0 or 1vw */
+}
+
+::-webkit-scrollbar {
+  width: 1vw;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #15F5BA;
+
+  border-top-left-radius: var(--scrollbar-top-round);
+  border-top-right-radius: var(--scrollbar-top-round);
+
+  border-bottom-left-radius: var(--scrollbar-bottom-round);
+  border-bottom-right-radius: var(--scrollbar-bottom-round);
+}

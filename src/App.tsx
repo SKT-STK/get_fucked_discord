@@ -4,9 +4,9 @@ import { useEffect, useRef, useState } from "react"
 import ProcessBarItem from "@/components/ProcessBarItem"
 import ListItem from "@/components/ListItem"
 import { ToastOptions, toast } from "react-toastify"
-import TrashBin from "@/components/TrashBin"
-import { DndContext, type DragEndEvent } from "@dnd-kit/core"
 import Lockdown from "@/components/Lockdown"
+import DragAndDropInfo from "@/components/DragAndDropInfo"
+import Scrollbar from "@/helpers/Scrollbar"
 
 type Data = {
   fileName: string,
@@ -26,22 +26,28 @@ const App = () => {
   const [deleteOnGoing, setDeleteOnGoing] = useState<{ is: boolean, fileName: string, sizeChunks: number }>({ is: false, fileName: '', sizeChunks: 0 })
   const [data, setData] = useState<Data>([])
   const gotStarterData = useRef<boolean | null>(false)
-  const [isDragging, setIsDragging] = useState<boolean>(false)
   const [canTakeFile, setCanTakeFile] = useState<boolean>(true)
 
-  const handleDragOver = async (e: DragEndEvent) => {
+  async function handleFileRemove(id: number) {
     setCanTakeFile(false)
-    const { active, over } = e
-    if (!active.id || !over) return
-    const objToRemove = data.filter((_, idx) => idx === parseInt(active.id.toString()))[0]
-    setData(prev => prev.filter((_, idx) => idx !== parseInt(active.id.toString())))
-    setIsDragging(false)
+    const objToRemove = data.filter((_, idx) => idx === parseInt(id.toString()))[0]
+    setData(prev => prev.filter((_, idx) => idx !== parseInt(id.toString())))
     setDeleteOnGoing({ is: true, fileName: objToRemove.fileName, sizeChunks: objToRemove.ids.length })
     toast.info('Deleting the file... This might take a while...', toastOption)
     await invoke('delete_attachments', { ids: objToRemove.ids })
     toast('Deleted the file successfully!', toastOption)
     setDeleteOnGoing({ is: false, fileName: '', sizeChunks: 0 })
     setCanTakeFile(true)
+  }
+
+  function getSizeChunksDownload() {
+    let length = 0
+    data.forEach(item => {
+      if (item.fileName === downloadOnGoing.fileName) {
+        length = item.ids.length
+      }
+    })
+    return length
   }
 
   useEffect(() => {
@@ -117,25 +123,16 @@ const App = () => {
 
   return (<>
     <Lockdown show={!canTakeFile} />
-    <main className='bg-[#21242C] flex flex-col items-center min-h-screen w-full text-neutral-100 pt-4'>
+    <main className='bg-[#21242C] flex flex-col items-center min-h-screen w-full text-neutral-100 py-4'>
+      { (data.length === 0 && canTakeFile) && <DragAndDropInfo /> }
       { dataToGo && <ProcessBarItem eventName='custom-attachment_sent' fileName={dataToGo.fileName} getSizeChunks={() => dataToGo.sizeChunks} /> }
-      { downloadOnGoing.is && <ProcessBarItem eventName='custom-attachment_downloaded' fileName={downloadOnGoing.fileName} getSizeChunks={() => {
-        let length = 0
-        data.forEach(item => {
-          if (item.fileName === downloadOnGoing.fileName) {
-            length = item.ids.length
-          }
-        })
-        return length
-      }} /> }
+      { downloadOnGoing.is && <ProcessBarItem eventName='custom-attachment_downloaded' fileName={downloadOnGoing.fileName} getSizeChunks={getSizeChunksDownload} /> }
       { deleteOnGoing.is && <ProcessBarItem eventName='custom-attachment_deleted' fileName={deleteOnGoing.fileName} getSizeChunks={() => deleteOnGoing.sizeChunks} /> }
-      <DndContext onDragEnd={handleDragOver}>
-        { data.map((v, i) => (
-          <ListItem key={i} id={i} name={v.fileName} ids={v.ids} setDownloadOnGoing={setDownloadOnGoing} isDraggingCallback={setIsDragging} canTakeFileCallback={setCanTakeFile} />
-        )) }
-        { isDragging && <TrashBin /> }
-      </DndContext>
+      { data.map((v, i) => (
+        <ListItem key={i} id={i} name={v.fileName} ids={v.ids} setDownloadOnGoing={setDownloadOnGoing} canTakeFileCallback={setCanTakeFile} removeFileCallback={handleFileRemove} />
+      )) }
     </main>
+    <Scrollbar />
   </>)
 }
 export default App

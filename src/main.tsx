@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client"
 import App from "./App"
 import "@/styles/.css"
 import '@/styles/tailwind.css'
+import '@/styles/scrollbar.css'
 import { invoke } from "@tauri-apps/api/tauri"
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.min.css"
