@@ -33,8 +33,9 @@ pub async fn init_bot(app: AppHandle) {
   }
 }
 
-pub async fn send_attachment(file_path: &str, app: &AppHandle, is_config: bool) -> u64 {
-  let attachment = CreateAttachment::path(file_path).await.unwrap();
+pub async fn send_attachment(file: impl Into<Vec<u8>>, app: &AppHandle, is_config: bool) -> u64 {
+  // let attachment = CreateAttachment::path(file_path).await.unwrap();
+  let attachment = CreateAttachment::bytes(file, ".25mb");
 
   let global_context = GLOBAL_CONTEXT.lock().await;
   let http: &serenity::http::Http;
