@@ -34,7 +34,6 @@ pub async fn init_bot(app: AppHandle) {
 }
 
 pub async fn send_attachment(file: impl Into<Vec<u8>>, app: &AppHandle, is_config: bool) -> u64 {
-  // let attachment = CreateAttachment::path(file_path).await.unwrap();
   let attachment = CreateAttachment::bytes(file, ".25mb");
 
   let global_context = GLOBAL_CONTEXT.lock().await;
@@ -111,7 +110,7 @@ pub async fn get_config_message_content() -> Vec<u8> {
   let http = &*global_context.as_ref().unwrap().http();
 
   let mut messages = FILES_IDS.messages_iter(http).boxed();
-  while let Some(Ok(msg)) = messages.next().await {
+  if let Some(Ok(msg)) = messages.next().await {
     return msg.attachments.get(0).unwrap().download().await.unwrap();
   }
   Vec::new()

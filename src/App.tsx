@@ -2,22 +2,27 @@ import { type UnlistenFn, listen } from "@tauri-apps/api/event"
 import { invoke } from "@tauri-apps/api/tauri"
 import { useEffect, useRef, useState } from "react"
 import ProcessBarItem from "@/components/ProcessBarItem"
-import ListItem from "@/components/ListItem"
 import { ToastOptions, toast } from "react-toastify"
 import Lockdown from "@/components/Lockdown"
 import DragAndDropInfo from "@/components/DragAndDropInfo"
 import Scrollbar from "@/helpers/Scrollbar"
+import { closestCenter, DndContext, type DragEndEvent } from "@dnd-kit/core"
+import ItemList from "@/components/ItemList"
+import { v4 as uuid } from 'uuid'
+import { arrayMove } from "@dnd-kit/sortable"
 
-type Data = {
+export type Data = {
   fileName: string,
-  ids: string[]
+  ids: string[],
+  id: string
 }[]
 
 const toastOption = {
   position: 'top-center',
   autoClose: 4000,
   draggable: false,
-  theme: 'dark'
+  theme: 'dark',
+  pauseOnFocusLoss: false
 } as ToastOptions<unknown>
 
 const App = () => {
@@ -28,10 +33,10 @@ const App = () => {
   const gotStarterData = useRef<boolean | null>(false)
   const [canTakeFile, setCanTakeFile] = useState<boolean>(true)
 
-  async function handleFileRemove(id: number) {
+  async function handleFileRemove(id: string) {
     setCanTakeFile(false)
-    const objToRemove = data.filter((_, idx) => idx === parseInt(id.toString()))[0]
-    setData(prev => prev.filter((_, idx) => idx !== parseInt(id.toString())))
+    const objToRemove = data[data.findIndex(({ id: uuid }) => uuid === id)]
+    setData(prev => prev.filter(({ id: uuid }) => uuid !== id))
     setDeleteOnGoing({ is: true, fileName: objToRemove.fileName, sizeChunks: objToRemove.ids.length })
     toast.info('Deleting the file... This might take a while...', toastOption)
     await invoke('delete_attachments', { ids: objToRemove.ids })
@@ -50,6 +55,17 @@ const App = () => {
     return length
   }
 
+  function onDragEnd(e: DragEndEvent) {
+    const { active, over } = e
+    if (over && active.id === over.id) return
+
+    setData(prev => {
+      const oldIdx = prev.findIndex(({ id: uuid }) => uuid === active.id)
+      const newIdx = prev.findIndex(({ id: uuid }) => uuid === over!.id)
+      return arrayMove(prev, oldIdx, newIdx)
+    })
+  }
+
   useEffect(() => {
     const unlisten: [UnlistenFn, UnlistenFn] = [() => {}, () => {}]
     let isMounted = true
@@ -66,7 +82,7 @@ const App = () => {
     }
 
     const handleDataSave = async (fileName: string, dcMsgsIds: string[]) => {
-      setData(prev => [{fileName, ids: dcMsgsIds}, ...prev])
+      setData(prev => [{fileName, ids: dcMsgsIds, id: uuid()}, ...prev])
       setDataToGo(undefined)
       toast('Upload completed!', toastOption)
       setCanTakeFile(true)
@@ -128,9 +144,9 @@ const App = () => {
       { dataToGo && <ProcessBarItem eventName='custom-attachment_sent' fileName={dataToGo.fileName} getSizeChunks={() => dataToGo.sizeChunks} /> }
       { downloadOnGoing.is && <ProcessBarItem eventName='custom-attachment_downloaded' fileName={downloadOnGoing.fileName} getSizeChunks={getSizeChunksDownload} /> }
       { deleteOnGoing.is && <ProcessBarItem eventName='custom-attachment_deleted' fileName={deleteOnGoing.fileName} getSizeChunks={() => deleteOnGoing.sizeChunks} /> }
-      { data.map((v, i) => (
-        <ListItem key={i} id={i} name={v.fileName} ids={v.ids} setDownloadOnGoing={setDownloadOnGoing} canTakeFileCallback={setCanTakeFile} removeFileCallback={handleFileRemove} />
-      )) }
+      <DndContext collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+        <ItemList data={data} setDownloadOnGoing={setDownloadOnGoing} setCanTakeFile={setCanTakeFile} handleFileRemove={handleFileRemove} />
+      </DndContext>
     </main>
     <Scrollbar />
   </>)

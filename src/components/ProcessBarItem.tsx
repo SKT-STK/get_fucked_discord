@@ -40,7 +40,7 @@ const ProcessBarItem = ({ eventName, fileName, getSizeChunks }: ProcessBarItemPr
   }, [])
 
   return (
-    <section 
+    <div 
       className='w-[90%] h-[12vh] flex items-center justify-around [&:not(:only-child)]:border-b-[1px]
       border-[#15F5BA] hover:bg-[#FFF1] rounded-t-xl [&:only-child]:rounded-b-xl flex-col'
     >
@@ -57,7 +57,7 @@ const ProcessBarItem = ({ eventName, fileName, getSizeChunks }: ProcessBarItemPr
           animate={animationPops}
         />
       </div>
-    </section>
+    </div>
   )
 }
 export default ProcessBarItem
