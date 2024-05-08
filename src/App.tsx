@@ -7,9 +7,10 @@ import Lockdown from "@/components/Lockdown"
 import DragAndDropInfo from "@/components/DragAndDropInfo"
 import Scrollbar from "@/helpers/Scrollbar"
 import { closestCenter, DndContext, type DragEndEvent } from "@dnd-kit/core"
-import ItemList from "@/components/ItemList"
+import List from "@/components/List"
 import { v4 as uuid } from 'uuid'
 import { arrayMove } from "@dnd-kit/sortable"
+import BlankSpaceEvent from "@/components/BlankSpaceEvent"
 
 export type Data = {
   fileName: string,
@@ -55,15 +56,23 @@ const App = () => {
     return length
   }
 
-  function onDragEnd(e: DragEndEvent) {
-    const { active, over } = e
-    if (over && active.id === over.id) return
+  function onDragEnd({ active, over }: DragEndEvent) {
+    if (!over || active.id === over.id) return
 
     setData(prev => {
       const oldIdx = prev.findIndex(({ id: uuid }) => uuid === active.id)
-      const newIdx = prev.findIndex(({ id: uuid }) => uuid === over!.id)
+      const newIdx = prev.findIndex(({ id: uuid }) => uuid === over.id)
       return arrayMove(prev, oldIdx, newIdx)
     })
+  }
+
+  function handleFileRename(id: string, name: string) {
+    setData(prev => (
+      prev.map(v => {
+        if (v.id !== id) return v
+        return { ...v, fileName: name }
+      })
+    ))
   }
 
   useEffect(() => {
@@ -145,8 +154,9 @@ const App = () => {
       { downloadOnGoing.is && <ProcessBarItem eventName='custom-attachment_downloaded' fileName={downloadOnGoing.fileName} getSizeChunks={getSizeChunksDownload} /> }
       { deleteOnGoing.is && <ProcessBarItem eventName='custom-attachment_deleted' fileName={deleteOnGoing.fileName} getSizeChunks={() => deleteOnGoing.sizeChunks} /> }
       <DndContext collisionDetection={closestCenter} onDragEnd={onDragEnd}>
-        <ItemList data={data} setDownloadOnGoing={setDownloadOnGoing} setCanTakeFile={setCanTakeFile} handleFileRemove={handleFileRemove} />
+        <List data={data} setDownloadOnGoing={setDownloadOnGoing} setCanTakeFile={setCanTakeFile} handleFileRemove={handleFileRemove} handleFileRename={handleFileRename} />
       </DndContext>
+      <BlankSpaceEvent />
     </main>
     <Scrollbar />
   </>)

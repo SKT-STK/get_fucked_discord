@@ -1,2 +1,0 @@
-renaming
-performance enhancement 1Gb of RAM used asynchronously at most
