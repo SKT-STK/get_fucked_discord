@@ -1,2 +1,2 @@
 renaming
-upload 0.5Gb asynchronously
+performance enhancement 1Gb of RAM used asynchronously at most
