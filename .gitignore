@@ -1,5 +1,7 @@
 /node_modules
 /src-tauri/target
 /dist
-*.lock*
-*-lock*
+
+src-tauri/Cargo.lock
+bun.lockb
+config.json.pem

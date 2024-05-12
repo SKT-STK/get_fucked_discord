@@ -39,6 +39,10 @@
       "identifier": "get-fucked-discord.skt-stk.dev",
       "icon": [
         "icons/icon.ico"
+      ],
+      "shortDescription": "",
+      "resources": [
+        "config.json"
       ]
     }
   }

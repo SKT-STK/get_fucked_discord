@@ -1,3 +1,4 @@
+use futures::{stream::FuturesOrdered, StreamExt};
 use tauri::AppHandle;
 
 use crate::dc_bot::{get_config_message_content, send_attachment};
@@ -24,6 +25,7 @@ pub async fn get_starter_data() -> String {
 #[tauri::command]
 pub async fn process_file_contents(app: AppHandle, file_path: String) -> Vec<String>  {
   const CHUCK_SIZE: usize = 25 * 1024 * 1024;
+  const CHUNK_NUMBER: usize = 5;
 
   let mut ret = Vec::new();
 
@@ -32,12 +34,26 @@ pub async fn process_file_contents(app: AppHandle, file_path: String) -> Vec<Str
   let mut buffer = vec![0; CHUCK_SIZE];
 
   loop {
-    let bytes_read = file.read(&mut buffer[..]).unwrap();
-    if bytes_read == 0 { break; }
+    let mut futures = FuturesOrdered::new();
 
-    ret.push(
-      send_attachment(&buffer[..bytes_read], &app, false).await.to_string()
-    );
+    let mut do_break = false;
+    for _ in 0..CHUNK_NUMBER {
+      let bytes_read = file.read(&mut buffer[..]).unwrap();
+      if bytes_read == 0 { do_break = true; break; }
+
+      let app_clone = app.clone();
+      let buffer_clone = buffer[..bytes_read].to_vec();
+      let future = async move {
+        send_attachment(buffer_clone, &app_clone, false).await.to_string()
+      };
+      futures.push_back(future);
+    }
+
+    while let Some(id) = futures.next().await {
+      ret.push(id);
+    }
+
+    if do_break { break; }
   }
 
   ret
