@@ -4,9 +4,11 @@ use structs::*;
 use tauri::{AppHandle, Manager};
 use std::{fs::{File, OpenOptions}, io::{Read, Write}};
 use serenity::{
-  all::{Attachment, ChannelId, CreateAttachment, CreateMessage}, futures::StreamExt, prelude::*, http::Http
+  all::{ChannelId, CreateAttachment, CreateMessage}, prelude::*, http::Http
 };
 use tokio::runtime::Runtime;
+use futures::stream::{FuturesOrdered, FuturesUnordered};
+use futures::StreamExt;
 
 static mut MAIN_CHANNEL: ChannelId = ChannelId::new(1);
 static mut FILES_IDS: ChannelId = ChannelId::new(1);
@@ -98,33 +100,70 @@ async fn send_attachment_config(http: &Http, attachment: [CreateAttachment; 1]) 
 
 #[tauri::command]
 pub async fn download_attachment(app: AppHandle, file_path: String, ids: Vec<String>) {
+  // let http = Http::new(get_static_token());
+
+  // for id in ids.iter() {
+    // let message = get_static_main_channel().message(&http, id.parse::<u64>().unwrap()).await.unwrap();
+    // process_attachment(message.attachments.get(0).unwrap(), &file_path).await;
+    // app.emit_all("custom-attachment_downloaded", Payload {}).unwrap();
+  //   for _ in 0..40 {
+
+  //   }
+  // }
   let http = Http::new(get_static_token());
 
-  for id in ids.iter() {
-    let message = get_static_main_channel().message(&http, id.parse::<u64>().unwrap()).await.unwrap();
-    process_attachment(message.attachments.get(0).unwrap(), &file_path).await;
-    app.emit_all("custom-attachment_downloaded", Payload {}).unwrap();
+  let mut i = 0;
+  loop {
+    let mut futures = FuturesOrdered::new();
+
+    let mut do_break = false;
+    for _ in 0..40 {
+      if i == ids.len() { do_break = true; break; }
+
+      let message = get_static_main_channel().message(&http, ids[i].parse::<u64>().unwrap()).await.unwrap();
+
+      let future = async move {
+        message.attachments.get(0).unwrap().download().await.unwrap()
+      };
+      futures.push_back(future);
+
+      i += 1;
+    }
+
+    while let Some(content) = futures.next().await {
+      process_attachment_content(&content, &file_path).await;
+      app.emit_all("custom-attachment_downloaded", Payload {}).unwrap();
+    }
+
+    if do_break { break; }
   }
 }
 
-async fn process_attachment(attachment: &Attachment, file_path: &str) {
+async fn process_attachment_content(content: &Vec<u8>, file_path: &str) {
   let mut file = OpenOptions::new()
     .append(true)
     .create(true)
     .open(file_path)
     .unwrap();
 
-  let content = attachment.download().await.unwrap();
+  // let content = attachment.download().await.unwrap();
 
   file.write_all(&content).unwrap();
 }
 
 #[tauri::command]
 pub async fn delete_attachments(app: AppHandle, ids: Vec<String>) {
-  let http = Http::new(get_static_token());
-  
+  let mut futures = FuturesUnordered::new();
   for id in ids {
-    let _ = get_static_main_channel().delete_message(&http, id.parse::<u64>().unwrap()).await;
+    let http = Http::new(get_static_token());
+    let future = async move {
+      let _ = get_static_main_channel().delete_message(&http, id.parse::<u64>().unwrap()).await;
+    };
+
+    futures.push(future);
+  }
+
+  while let Some(_) = futures.next().await {
     app.emit_all("custom-attachment_deleted", Payload {}).unwrap();
   }
 }
