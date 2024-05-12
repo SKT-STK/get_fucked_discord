@@ -1,3 +1,5 @@
+Some terribly written tauri app to scam Discord for free cloud disk space. Srsly tho, plz don't look at the React code (neither the Rust one actually).
+
 INSTALL:
   Run the installer,
   open the path at which you installed at,
