@@ -100,16 +100,8 @@ async fn send_attachment_config(http: &Http, attachment: [CreateAttachment; 1]) 
 
 #[tauri::command]
 pub async fn download_attachment(app: AppHandle, file_path: String, ids: Vec<String>) {
-  // let http = Http::new(get_static_token());
+  const CHUNK_NUMBER: usize = 40;
 
-  // for id in ids.iter() {
-    // let message = get_static_main_channel().message(&http, id.parse::<u64>().unwrap()).await.unwrap();
-    // process_attachment(message.attachments.get(0).unwrap(), &file_path).await;
-    // app.emit_all("custom-attachment_downloaded", Payload {}).unwrap();
-  //   for _ in 0..40 {
-
-  //   }
-  // }
   let http = Http::new(get_static_token());
 
   let mut i = 0;
@@ -117,7 +109,7 @@ pub async fn download_attachment(app: AppHandle, file_path: String, ids: Vec<Str
     let mut futures = FuturesOrdered::new();
 
     let mut do_break = false;
-    for _ in 0..40 {
+    for _ in 0..CHUNK_NUMBER {
       if i == ids.len() { do_break = true; break; }
 
       let message = get_static_main_channel().message(&http, ids[i].parse::<u64>().unwrap()).await.unwrap();
