@@ -8,9 +8,6 @@ use serenity::{
 };
 use tokio::runtime::Runtime;
 
-// const MAIN_CHANNEL: ChannelId = ChannelId::new(1214281535168188489);
-// const FILES_IDS: ChannelId = ChannelId::new(1216208431250411530);
-// const TOKEN: &str = "MTIxNDI4MTcwNTI3NjU3OTk1MA.G9OeNV.ej-yPMN_j_iyGvdXJLlLbYnPb1wTTFCE6ZTPfs";
 static mut MAIN_CHANNEL: ChannelId = ChannelId::new(1);
 static mut FILES_IDS: ChannelId = ChannelId::new(1);
 static mut TOKEN: String = String::new();
