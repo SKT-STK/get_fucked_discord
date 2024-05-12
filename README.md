@@ -1,4 +1,4 @@
-Some terribly written tauri app to scam Discord for free cloud disk space. Srsly tho, plz don't look at the React code (neither the Rust one actually).
+Some terribly written tauri app to scam Discord for free cloud disk space. Srsly tho, plz don't look at the React code (neither the Rust one actually). And also, fuck off of the commits eh? ain't nobody got time for this shit fr.
 
 INSTALL:
   Run the installer,
