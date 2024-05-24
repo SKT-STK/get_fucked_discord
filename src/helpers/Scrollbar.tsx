@@ -1,5 +1,5 @@
-import useScrollbarPos from "@/hooks/useScrollbarPos"
-import { useEffect } from "react"
+import useScrollbarPos from '@/hooks/useScrollbarPos'
+import { useEffect } from 'react'
 
 const Scrollbar = () => {
   const scrollbarPos = useScrollbarPos()

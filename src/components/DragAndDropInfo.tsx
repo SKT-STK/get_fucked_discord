@@ -1,4 +1,4 @@
-import Lottie from "lottie-react"
+import Lottie from 'lottie-react'
 import animationData from '@/assets/animations/plus.json'
 
 const DragAndDropInfo = () => {

@@ -1,5 +1,5 @@
-import { invoke } from "@tauri-apps/api"
-import { useEffect } from "react"
+import { invoke } from '@tauri-apps/api'
+import { useEffect } from 'react'
 
 const SplashScreen = () => {
   useEffect(() => {

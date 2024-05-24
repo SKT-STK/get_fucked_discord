@@ -1,11 +1,11 @@
-import { downloadDir, join } from "@tauri-apps/api/path"
-import { invoke } from "@tauri-apps/api/tauri"
-import Lottie, { type LottieRefCurrentProps } from "lottie-react"
-import { type CSSProperties, useEffect, useRef, useState } from "react"
-import { ToastOptions, toast } from "react-toastify"
+import { downloadDir, join } from '@tauri-apps/api/path'
+import { invoke } from '@tauri-apps/api/tauri'
+import Lottie, { type LottieRefCurrentProps } from 'lottie-react'
+import { type CSSProperties, useEffect, useRef, useState } from 'react'
+import { ToastOptions, toast } from 'react-toastify'
 import animationData from '@/assets/animations/trashBinAnim.json'
-import { useSortable } from "@dnd-kit/sortable"
-import { CSS } from "@dnd-kit/utilities"
+import { useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 
 interface ListItemProps {
   name: string
