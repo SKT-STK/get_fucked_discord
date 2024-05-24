@@ -2,9 +2,19 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tsConfigPaths from 'vite-tsconfig-paths'
 
+const ReactCompilerConfig = {
+  compilationMode: "all"
+}/* false */
+
 // https://vitejs.dev/config/
 export default defineConfig(async () => ({
-  plugins: [react(), tsConfigPaths()],
+  plugins: [react({
+    babel: {
+      plugins: [
+        ['babel-plugin-react-compiler', ReactCompilerConfig]
+      ]
+    }
+  }), tsConfigPaths()],
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //

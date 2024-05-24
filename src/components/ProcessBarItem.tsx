@@ -52,7 +52,15 @@ const ProcessBarItem = ({ eventName, fileName, getSizeChunks }: ProcessBarItemPr
       <div className='bg-[#211951] w-[95%] h-[25%] relative flex justify-center items-center text-center text-neutral-100 rounded-lg overflow-hidden'>
         <span className='z-[1]'>{ perc.toFixed(2) + '%' }</span>
         <motion.div
-          className='absolute h-full bg-[#836FFF] top-0 bottom-0 left-0'
+          // className='absolute h-full bg-[#836FFF] top-0 bottom-0 left-0'
+          style={{
+            position: 'absolute',
+            height: '100%',
+            backgroundColor: '#836FFF',
+            top: 0,
+            bottom: 0,
+            left: 0
+          }}
           initial={{ width: 0 }}
           animate={animationPops}
         />
@@ -61,3 +69,5 @@ const ProcessBarItem = ({ eventName, fileName, getSizeChunks }: ProcessBarItemPr
   )
 }
 export default ProcessBarItem
+
+// fuck
