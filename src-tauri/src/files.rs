@@ -24,7 +24,7 @@ pub async fn get_starter_data() -> String {
 
 #[tauri::command]
 pub async fn process_file_contents(app: AppHandle, file_path: String) -> Vec<String>  {
-  const CHUCK_SIZE: usize = 25 * 1024 * 1024;
+  const CHUCK_SIZE: usize = 10 * 1024 * 1024;
   const CHUNK_NUMBER: usize = 5;
 
   let mut ret = Vec::new();

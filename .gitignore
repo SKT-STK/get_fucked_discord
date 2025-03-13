@@ -3,5 +3,6 @@
 /dist
 
 src-tauri/Cargo.lock
+src-tauri/config.json
 bun.lockb
 config.json.pem
